@@ -8,13 +8,12 @@ import (
 
 func FindSubdomain(tg string){ // use function to find subdomain and organize data
 	color.Yellow("Just standby ")
-	c := color.New(color.FgCyan)
+
 	subdomain := modules.Find(tg) // subdomain is []string
 	subdomain = unique(subdomain)
 
 
 	for n,_ := range subdomain{
-		c.Print("[Sub]:")
 		fmt.Println(subdomain[n])
 	}
 }

@@ -2,16 +2,18 @@ package modules
 
 import (
 	"bytes"
+	"fmt"
 	"github.com/bitly/go-simplejson"
 	"github.com/fatih/color"
 	"io/ioutil"
 	"net/http"
+	"regexp"
 )
 
 func Find(tg string) []string{
 	// 数据合并
 	subdomain :=crtsh(tg)
-//	subdomain = append(subdomain,certspotter(tg)...)
+	subdomain = append(subdomain,certspotter(tg)...)
 	return subdomain
 }
 
@@ -26,12 +28,11 @@ func crtsh(tg string) []string{
 	// 获取主体并且进行分割，拆分的结果存入数组body中，每个元素都是一条json
 	context,err := ioutil.ReadAll(req.Body)
 
-	tmp := bytes.ReplaceAll(context,[]byte("["),[]byte(""))
-	tmp = bytes.ReplaceAll(tmp,[]byte("]"),[]byte(""))
-	tmp = bytes.ReplaceAll(tmp,[]byte("\\n"),[]byte(""))
-	tmp = bytes.ReplaceAll(tmp,[]byte("},{"),[]byte("}\\n{"))
-
-	body := bytes.Split(tmp,[]byte("\\n"))
+	re := regexp.MustCompile("},(.*?)(\\n*?)(.*?){")
+	tmp := re.ReplaceAll(context,[]byte("}#{"))
+	tmp = bytes.Trim(tmp,"[")
+	tmp = bytes.Trim(tmp,"]")
+	body := bytes.Split(tmp,[]byte("#"))
 
 	var subdomain []string //用来放子域的切片
 	// 从body中取json进行分析，同时将分析结果内的url加入子域切片内
@@ -50,15 +51,40 @@ func crtsh(tg string) []string{
 	return subdomain
 }
 
-// Not yet completed
-/*
+
 func certspotter(tg string) []string{
 
-	req,err := http.Get("https://api.certspotter.com/v1/issuances?expand=dns_names&include_subdomains=true&domain="+tg)
+	req,err := http.Get("https://api.certspotter.com/v1/issuances?expand=dns_names&include_subdomains="+tg)
 	if err != nil {
 		color.Red("certspotter error!",err)
 	}
 	defer req.Body.Close()
 
+	context,err := ioutil.ReadAll(req.Body)
+	//分割json数据
+	re := regexp.MustCompile("},(.*?)(\\n*?)(.*?){")
+	tmp := re.ReplaceAll(context,[]byte("}#{"))
+	tmp = bytes.Trim(tmp,"[")
+	tmp = bytes.Trim(tmp,"]")
+	body := bytes.Split(tmp,[]byte("#"))
 
-}*/
+	var subdomain []string //用来放子域的切片
+	for _,value := range body{
+		// 解析json
+		js,err := simplejson.NewJson(value)
+		if err != nil{
+			panic(err)
+		}
+
+		//提取dns_names数组,并入subdomain
+		subarr,err := js.Get("dns_names").StringArray()
+		if err!= nil {
+			color.Red("Couldn't use certspotter")
+			fmt.Println("")
+			return subdomain
+		}
+		subdomain=append(subdomain,subarr...)
+	}
+
+	return subdomain
+}
