@@ -10,16 +10,18 @@ import (
 	"regexp"
 )
 
-func Find(tg string) []string{
+func CeFind(target string) []string{
+	var subdomain []string
 	// 数据合并
-	subdomain :=crtsh(tg)
-	subdomain = append(subdomain,certspotter(tg)...)
+	subdomain =append(subdomain,crtsh(target)...)
+	subdomain = append(subdomain,certspotter(target)...)
+
 	return subdomain
 }
 
 // use crt.sh to find
-func crtsh(tg string) []string{
-	req,err := http.Get("https://crt.sh/?output=json&q="+tg)
+func crtsh(target string) []string{
+	req,err := http.Get("https://crt.sh/?output=json&q="+ target)
 	if err != nil{
 		color.Red("crtsh error!",err)
 	}
@@ -34,7 +36,7 @@ func crtsh(tg string) []string{
 	tmp = bytes.Trim(tmp,"]")
 	body := bytes.Split(tmp,[]byte("#"))
 
-	var subdomain []string //用来放子域的切片
+	var subdomain []string
 	// 从body中取json进行分析，同时将分析结果内的url加入子域切片内
 	for _,cont := range body {
 		js,err := simplejson.NewJson(cont)

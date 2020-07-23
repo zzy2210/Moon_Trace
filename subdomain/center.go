@@ -6,12 +6,14 @@ import (
 	"github.com/fatih/color"
 )
 
-func FindSubdomain(tg string){ // use function to find subdomain and organize data
+func FindSubdomain(target string){ // use function to find subdomain and organize data
 	color.Yellow("Just standby ")
 
-	subdomain := modules.Find(tg) // subdomain is []string
-	subdomain = unique(subdomain)
+	var subdomain []string
+	subdomain = append(subdomain,modules.CeFind(target)...)
+	subdomain = append(subdomain,modules.DnsData(target)...)
 
+	subdomain = unique(subdomain)
 
 	for n,_ := range subdomain{
 		fmt.Println(subdomain[n])
