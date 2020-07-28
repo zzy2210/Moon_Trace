@@ -1,6 +1,7 @@
 package modules
 
 import (
+	"fmt"
 	"github.com/bitly/go-simplejson"
 	"github.com/fatih/color"
 	"io/ioutil"
@@ -10,29 +11,23 @@ import (
 
 func DnsData(target string) []string {
 	var subdomain []string
-	//subdomain = append(subdomain,ceBaidu(target)...)
+	subdomain = append(subdomain,ceBaidu(target)...)
 	//subdomain = append(subdomain,dnsBufferOver(target)...)
 
 	return subdomain
 }
 
-func buff(tg string) []string {
-	// reg: "(.+?),
-	var subdomain []string
 
-
-	return subdomain
-}
 
 
 // cebaidu has some problems
-// the tmp is interface{}
-// but i need []byte
-func ceBaidu(tg string) []string {
+func ceBaidu(target string) []string {
+	var subdomain []string
 	// 虽然是ce.baidu 但是其实这是一个百度的安全观测站。
-	req,err := http.Get("https://ce.baidu.com/index/getRelatedSites?site_address="+tg)
+	req,err := http.Get("https://ce.baidu.com/index/getRelatedSites?site_address="+ target)
 	if err != nil {
 		color.Red("Baidu DNS error!",err)
+
 	}
 	defer req.Body.Close()
 	context,err := ioutil.ReadAll(req.Body)
@@ -40,32 +35,31 @@ func ceBaidu(tg string) []string {
 	//嵌套json，不知为何无法直接取值。
 	js,err := simplejson.NewJson(context)
 	if err != nil{
-		panic(err)
+		color.Red("Can't use CeBaidu,Json wrong!")
+
 	}
 	//要想办法将interface转换为[]byte
 	jsarr,err := js.Get("data").Array()
 	if err!= nil {
-		color.Red("Error!")
-		panic(err)
+		color.Red("Can't use CeBaidu,may be frequent requests")
+
 	}
 
-	var subdomain []string
 	for _,tmp := range jsarr {
-		subjs,err := simplejson.NewJson(tmp)
-		if err != nil {
-			panic(err)
+		if m,ok := tmp.(map[string]interface{});ok {
+			for _,sub := range m{
+				switch sub.(type) {
+				case string:
+					subdomain = append(subdomain,sub.(string))
+					fmt.Println(sub)
+				}
+			}
 		}
-
-		sub,err := subjs.Get("domain").String()
-		if err != nil {
-			panic(err)
-		}
-		subdomain = append(subdomain,sub)
 	}
-
 	return subdomain
 }
 
+//TODO:
 // 使用dns.bufferover.run
 // cloudfare拦截，无法使用。
 func dnsBufferOver(target string) []string {
