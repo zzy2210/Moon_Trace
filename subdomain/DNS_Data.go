@@ -1,4 +1,4 @@
-package modules
+package subdomain
 
 import (
 	"fmt"
@@ -7,27 +7,22 @@ import (
 	"io/ioutil"
 	"net/http"
 	"regexp"
+	"sync"
 )
 
-func DnsData(target string) []string {
-	var subdomain []string
-	subdomain = append(subdomain,ceBaidu(target)...)
+func DnsData(target string,wg *sync.WaitGroup)  {
+	ceBaidu(target)
 	//subdomain = append(subdomain,dnsBufferOver(target)...)
-
-	return subdomain
+	wg.Done()
 }
 
-
-
-
 // cebaidu has some problems
-func ceBaidu(target string) []string {
-	var subdomain []string
+func ceBaidu(target string) {
 	// 虽然是ce.baidu 但是其实这是一个百度的安全观测站。
 	req,err := http.Get("https://ce.baidu.com/index/getRelatedSites?site_address="+ target)
 	if err != nil {
 		color.Red("Baidu DNS error!",err)
-
+		return
 	}
 	defer req.Body.Close()
 	context,err := ioutil.ReadAll(req.Body)
@@ -35,14 +30,14 @@ func ceBaidu(target string) []string {
 	//嵌套json，不知为何无法直接取值。
 	js,err := simplejson.NewJson(context)
 	if err != nil{
-		color.Red("Can't use CeBaidu,Json wrong!")
-
-	}
+			color.Red("Can't use CeBaidu,Json wrong!")
+			return
+		}
 	//要想办法将interface转换为[]byte
 	jsarr,err := js.Get("data").Array()
 	if err!= nil {
 		color.Red("Can't use CeBaidu,may be frequent requests")
-
+		return
 	}
 
 	for _,tmp := range jsarr {
@@ -56,15 +51,13 @@ func ceBaidu(target string) []string {
 			}
 		}
 	}
-	return subdomain
+
 }
 
 //TODO:
 // 使用dns.bufferover.run
 // cloudfare拦截，无法使用。
 func dnsBufferOver(target string) []string {
-	var subdomain []string
-
 	req,err := http.NewRequest("GET","http://dns.bufferover.run/dns?q="+target,nil)
 	if err != nil {
 		color.Red("Can't use dns.bufferover.run")

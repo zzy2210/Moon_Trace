@@ -1,22 +1,30 @@
 package subdomain
 
 import (
-	"Moon_Trace/subdomain/modules"
+	"Moon_Trace/Global"
 	"fmt"
 	"github.com/fatih/color"
+	"github.com/urfave/cli"
+	"strings"
+	"sync"
 )
 
+
+var subdomain []string
+
 func FindSubdomain(target string){ // use function to find subdomain and organize data
-	color.Yellow("Just standby ")
+	wg := sync.WaitGroup{}
+	wg.Add(2) //如果在子函数里面写 wg.add(1) 这种，会直接跑过去而不是停留。
+	color.Yellow("Start subdomain find")
 
-	var subdomain []string
-	subdomain = append(subdomain,modules.CeFind(target)...)
-	subdomain = append(subdomain,modules.DnsData(target)...)
+	go DnsData(target,&wg)
+	go CeFind(target,&wg)
 
-	subdomain = unique(subdomain)
+	wg.Wait()
+	sub := unique(subdomain)
 
-	for n,_ := range subdomain{
-		fmt.Println(subdomain[n])
+	for n,_ := range sub{
+		fmt.Println(sub[n])
 	}
 }
 
@@ -26,6 +34,7 @@ func FindSubdomain(target string){ // use function to find subdomain and organiz
 		//So only index of
 		var unique []string
 		for _,value := range ataxic {
+			value = strings.TrimSpace(value)
 			if !indexOf(value,unique){
 				unique = append(unique,value)
 			}
@@ -42,4 +51,15 @@ func FindSubdomain(target string){ // use function to find subdomain and organiz
 			}
 		}
 		return false
+	}
+
+
+	func init() {
+		Global.Moon.Flags = append(Global.Moon.Flags,
+			cli.BoolFlag{ // 参数判定，启用子域查询
+				Name:  "sub",
+				Usage: "to find subdimain",
+			},
+			)
+
 	}

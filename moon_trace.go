@@ -1,7 +1,9 @@
 package main
 
 import (
+	"Moon_Trace/PortScan"
 	"Moon_Trace/subdomain"
+	"Moon_Trace/Global"
 	"github.com/fatih/color"
 	"github.com/urfave/cli"
 	"log"
@@ -20,39 +22,30 @@ func main(){
 `
 color.Cyan(logo)
 
-app := cli.NewApp()
-app.Name ="Moon_Trace"
-app.Version = "1.0.0"
-app.Usage = "A easy tool framework "
+var target string
 
-var target string = "nil"
-
-app.Flags = []cli.Flag{
+Global.Moon.Flags = append(Global.Moon.Flags,
 	cli.StringFlag{ // 目标url的flag，参数绑定到target
 		Name:        "u",
 		Usage:       "target url",
 		Value:       "nil",
-		Destination:&target,
-	},
-	cli.BoolFlag{ // 参数判定，启用子域查询
-		Name:        "sub",
-		Usage:       "to find subdimain",
-	},
-}
+		Destination: &target,
+	})
 
-app.Action = func(c *cli.Context) {
+Global.Moon.Action = func(c *cli.Context) {
 
 	if c.Bool("sub"){  //调用子域查询
 		subdomain.FindSubdomain(target)
 	}
+	if c.Bool("port"){
+		PortScan.PortScan(target)
+	}
 }
 
 
-err :=app.Run(os.Args)
+err := Global.Moon.Run(os.Args)
 if err!= nil {
 	log.Fatal(err)
+	}
 }
 
-
-
-}
