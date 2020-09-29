@@ -1,9 +1,10 @@
 package main
 
 import (
+	"Moon_Trace/Global"
 	"Moon_Trace/PortScan"
 	"Moon_Trace/subdomain"
-	"Moon_Trace/Global"
+	"fmt"
 	"github.com/fatih/color"
 	"github.com/urfave/cli"
 	"log"
@@ -38,7 +39,12 @@ Global.Moon.Action = func(c *cli.Context) {
 		subdomain.FindSubdomain(target)
 	}
 	if c.Bool("port"){
-		PortScan.PortScan(target)
+		if c.Bool("tcp") {
+			PortScan.PortScan(target,"tcp")
+		}else if c.Bool("udp"){
+			fmt.Println("Sorry，udpScan couldn't use")
+			//PortScan.PortScan(target,"udp")
+		}
 	}
 }
 

@@ -10,15 +10,22 @@ import (
 
 var ip interface{}
 var portList []int
-func PortScan(target string) {
+func PortScan(target,scantype string) {
 	var err error
 	ip,err = net.ResolveIPAddr("ip4",target)
 	if err != nil {
-		color.Red("errpr!")
+		color.Red("error!")
 		panic(err)
 	}
 	color.Yellow("Start Port Scan ")
-	tcpScan(target)
+
+	if scantype == "tcp" {
+		tcpScan(target)
+	}else if scantype == "udp"{
+		udpScan(target)
+	}else {
+		fmt.Println("Sorry,this version don't have this scan_type")
+	}
 
 	portList = unique(portList)
 
@@ -58,6 +65,14 @@ func init() {
 		cli.BoolFlag{
 			Name: "port",
 			Usage: "PortScan",
+		},
+		cli.BoolFlag{
+			Name:        "udp",
+			Usage:       "UdpScan",
+		},
+		cli.BoolFlag{
+			Name:        "tcp",
+			Usage:       "TcpScan",
 		},
 	)
 }
