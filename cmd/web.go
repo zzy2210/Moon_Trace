@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"Monn_Trace_V2/web"
+	"Moon_Trace/web"
 	"github.com/spf13/cobra"
 )
 

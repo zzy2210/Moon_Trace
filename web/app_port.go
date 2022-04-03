@@ -1,7 +1,7 @@
 package web
 
 import (
-	"Monn_Trace_V2/web/status"
+	"Moon_Trace/web/status"
 	"github.com/labstack/echo"
 )
 

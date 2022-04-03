@@ -1,6 +1,6 @@
 package main
 
-import "Monn_Trace_V2/cmd"
+import "Moon_Trace/cmd"
 
 func main() {
 	cmd.Excute()
