@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+// 域名查询请求
+//
+// 域名查询请求
+message AppDomainRequest{
+
+  string Domain = 1;
+  int64 Limit = 2;
+  int64 Offset = 3;
+}
+
+message AppDomainResponse{
+
+}
+
+message Status {
+  int32 Code = 1;
+  string Message = 2;
+}
