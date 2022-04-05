@@ -24,5 +24,5 @@ func (s *Server) Run() error {
 }
 
 func (s *Server) Register() {
-	s.e.GET("/app/domain", s.AppDomain)
+	s.e.POST("/app/domain", s.AppDomain)
 }
