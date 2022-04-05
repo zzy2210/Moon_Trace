@@ -12,15 +12,16 @@ func NewServer(e *echo.Echo) *Server {
 	}
 }
 
-func Start() error {
-	e := echo.New()
-	srv := NewServer(e)
-	return srv.Run()
-}
 func (s *Server) Run() error {
 	s.Register()
 
 	return s.e.Start(":1323")
+}
+
+func Start() error {
+	e := echo.New()
+	srv := NewServer(e)
+	return srv.Run()
 }
 
 func (s *Server) Register() {
