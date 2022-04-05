@@ -10,6 +10,7 @@ require (
 )
 
 require (
+	github.com/go-ini/ini v1.66.4 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.11.0 // indirect
