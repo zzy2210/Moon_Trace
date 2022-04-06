@@ -14,7 +14,7 @@ type PGConf struct {
 	DBName   string `ini:"dbname"`
 }
 
-func load(path string) (*Conf, error) {
+func Load(path string) (*Conf, error) {
 	f, err := ini.Load(path)
 	if err != nil {
 		return nil, err

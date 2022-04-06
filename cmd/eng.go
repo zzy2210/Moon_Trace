@@ -5,9 +5,15 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var engArgs eng.Args
 var engCmd = &cobra.Command{
 	Short: "start eng",
 	Run: func(cmd *cobra.Command, args []string) {
-		eng.Execute()
+		eng.Execute(&engArgs)
 	},
+}
+
+func init() {
+	rootCmd.AddCommand(engCmd)
+	engCmd.Flags().StringVar(&engArgs.ConfigPath, "config_path", "/conf/engConf.conf", "引擎配置文件")
 }

@@ -1,6 +1,7 @@
 package model
 
 import (
+	"Moon_Trace/eng/conf"
 	"fmt"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -26,8 +27,9 @@ type Urls struct {
 type PostgresDB struct {
 }
 
-func NewDB(host, port, user, pwd, dbname string) (*gorm.DB, error) {
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s", host, user, pwd, dbname, port)
+func NewGormDB(conf *conf.Conf) (*gorm.DB, error) {
+
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s", conf.PGConf.Host, conf.PGConf.User, conf.PGConf.PassWord, conf.PGConf.DBName, conf.PGConf.Port)
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		return nil, err

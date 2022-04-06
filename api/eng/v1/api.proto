@@ -1,5 +1,7 @@
 syntax = "proto3";
 package api.eng.v1;
+import "google/api/annotations.proto";
+
 option go_package = "Moon_Trace/api/eng/v1";
 
 // 域名查询请求
@@ -22,5 +24,8 @@ message Status {
 
 service AppDomain{
   rpc Echo(AppDomainRequest) returns (AppDomainResponse) {
+    option (google.api.http) = {
+      get:"/"
+    };
   }
 }

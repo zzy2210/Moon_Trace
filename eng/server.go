@@ -1,29 +1,37 @@
 package eng
 
 import (
-	"context"
-	"github.com/grpc-ecosystem/grpc-gateway/runtime"
-	_ "github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway"
-	_ "github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2"
-	_ "google.golang.org/grpc/cmd/protoc-gen-go-grpc"
-	_ "google.golang.org/protobuf/cmd/protoc-gen-go"
-
-	pb "Moon_Trace/api/eng/v1"
+	"Moon_Trace/eng/conf"
+	"Moon_Trace/eng/model"
+	"github.com/labstack/gommon/log"
+	"gorm.io/gorm"
 )
 
+type Args struct {
+	ConfigPath string
+}
 type Server struct {
+	DB *gorm.DB
 }
 
-func NewSrv() *Server {
-	return &Server{}
+func NewSrv(DB *gorm.DB) *Server {
+	return &Server{
+		DB: DB,
+	}
 }
 
 func (s *Server) Run() error {
-	ctx := context.Background()
-	gwmux := runtime.ServeMux{}
-	err := pb.RegisterAppDomainServer(ctx, gwmux, "")
+	// 这里创建grpc server
+
+	return nil
 }
-func Execute() {
-	srv := NewSrv()
+func Execute(args *Args) {
+	config, err := conf.Load(args.ConfigPath)
+	if err != nil {
+		log.Errorf("get config error:", err)
+	}
+	gormDB, err := model.NewGormDB(config)
+	srv := NewSrv(gormDB)
+
 	srv.Run()
 }

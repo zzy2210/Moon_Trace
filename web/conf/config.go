@@ -8,7 +8,7 @@ type Conf struct {
 }
 
 type Grpc struct {
-	GrpcAddr string `ini:"grpcAddr delim:,"`
+	GrpcAddr string `ini:"grpcAddr"delim:","`
 }
 type Web struct {
 	Port int `ini:"port"`
