@@ -25,7 +25,8 @@ message Status {
 service AppDomain{
   rpc Echo(AppDomainRequest) returns (AppDomainResponse) {
     option (google.api.http) = {
-      get:"/"
+      post:"/app/domain"
+      body:"*"
     };
   }
 }

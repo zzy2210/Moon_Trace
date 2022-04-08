@@ -4,6 +4,7 @@ import "github.com/labstack/echo"
 
 type Server struct {
 	e *echo.Echo
+	grpcSrvs[]
 }
 
 func NewServer(e *echo.Echo) *Server {
@@ -20,6 +21,7 @@ func (s *Server) Run() error {
 
 func Start() error {
 	e := echo.New()
+
 	srv := NewServer(e)
 	return srv.Run()
 }
