@@ -4,7 +4,7 @@ import "github.com/labstack/echo"
 
 type Server struct {
 	e *echo.Echo
-	grpcSrvs[]
+	// grpcSrvs[]
 }
 
 func NewServer(e *echo.Echo) *Server {

@@ -1,8 +1,6 @@
 package eng
 
 import (
-	"Moon_Trace/eng/service"
-	"crypto/tls"
 	"net"
 	"net/http"
 
@@ -11,11 +9,7 @@ import (
 	"Moon_Trace/eng/model"
 
 	"github.com/labstack/gommon/log"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
 	"gorm.io/gorm"
-
-	pb "Moon_Trace/api/eng/v1"
 )
 
 type Args struct {
@@ -41,7 +35,7 @@ func NewSrv(DB *gorm.DB, conf *conf.Conf) *Server {
 
 func (s *Server) Run() error {
 
-	return
+	return nil
 }
 func Execute(args *Args) {
 	config, err := conf.Load(args.ConfigPath)
@@ -53,15 +47,15 @@ func Execute(args *Args) {
 	srv.Args = args
 	conn, err := net.Listen("tcp", args.Addr)
 	tlsConf := cert.GetTLSConfig(args.CertPemPath, args.CertKeyPath)
-	grpcSrv, err := newGrpc(conn, tlsConf)
+	//	grpcSrv, err := newGrpc(conn, tlsConf, args)
 	if err != nil {
 		log.Errorf("")
 	}
-	srv.grpcSrv = grpcSrv
+	//	srv.grpcSrv = grpcSrv
 	srv.Run()
 }
 
-func newGrpc(conn net.Listener, tlsConfig *tls.Config, args *Args) (*http.Server, error) {
+/*func newGrpc(conn net.Listener, tlsConfig *tls.Config, args *Args) (*http.Server, error) {
 	var opts []grpc.ServerOption
 
 	// grpc server
@@ -74,7 +68,7 @@ func newGrpc(conn net.Listener, tlsConfig *tls.Config, args *Args) (*http.Server
 	opts = append(opts, grpc.Creds(creds))
 	grpcServer := grpc.NewServer(opts...)
 	// register grpc pb
-	pb.RegisterAppDomainServer(grpcServer, service.NewServer())
+	pb.RegisterAppServer(grpcServer, service.NewServer())
 	// gw server
 	ctx := context.Background()
 	dcreds, err := credentials.NewClientTLSFromFile(args.CertPemPath, "test")
@@ -100,3 +94,4 @@ func newGrpc(conn net.Listener, tlsConfig *tls.Config, args *Args) (*http.Server
 		TLSConfig: tlsConfig,
 	}, nil
 }
+*/
