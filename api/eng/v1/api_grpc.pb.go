@@ -14,86 +14,122 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-// AppDomainClient is the client API for AppDomain service.
+// AppClient is the client API for App service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type AppDomainClient interface {
-	Echo(ctx context.Context, in *AppDomainRequest, opts ...grpc.CallOption) (*AppDomainResponse, error)
+type AppClient interface {
+	HandleAppDomain(ctx context.Context, in *AppDomainRequest, opts ...grpc.CallOption) (*AppDomainResponse, error)
+	HandleAppPort(ctx context.Context, in *AppPortRequest, opts ...grpc.CallOption) (*AppPortResponse, error)
 }
 
-type appDomainClient struct {
+type appClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewAppDomainClient(cc grpc.ClientConnInterface) AppDomainClient {
-	return &appDomainClient{cc}
+func NewAppClient(cc grpc.ClientConnInterface) AppClient {
+	return &appClient{cc}
 }
 
-func (c *appDomainClient) Echo(ctx context.Context, in *AppDomainRequest, opts ...grpc.CallOption) (*AppDomainResponse, error) {
+func (c *appClient) HandleAppDomain(ctx context.Context, in *AppDomainRequest, opts ...grpc.CallOption) (*AppDomainResponse, error) {
 	out := new(AppDomainResponse)
-	err := c.cc.Invoke(ctx, "/api.eng.v1.AppDomain/Echo", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/api.eng.v1.App/handleAppDomain", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// AppDomainServer is the server API for AppDomain service.
-// All implementations must embed UnimplementedAppDomainServer
+func (c *appClient) HandleAppPort(ctx context.Context, in *AppPortRequest, opts ...grpc.CallOption) (*AppPortResponse, error) {
+	out := new(AppPortResponse)
+	err := c.cc.Invoke(ctx, "/api.eng.v1.App/handleAppPort", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// AppServer is the server API for App service.
+// All implementations must embed UnimplementedAppServer
 // for forward compatibility
-type AppDomainServer interface {
-	Echo(context.Context, *AppDomainRequest) (*AppDomainResponse, error)
-	mustEmbedUnimplementedAppDomainServer()
+type AppServer interface {
+	HandleAppDomain(context.Context, *AppDomainRequest) (*AppDomainResponse, error)
+	HandleAppPort(context.Context, *AppPortRequest) (*AppPortResponse, error)
+	mustEmbedUnimplementedAppServer()
 }
 
-// UnimplementedAppDomainServer must be embedded to have forward compatible implementations.
-type UnimplementedAppDomainServer struct {
+// UnimplementedAppServer must be embedded to have forward compatible implementations.
+type UnimplementedAppServer struct {
 }
 
-func (UnimplementedAppDomainServer) Echo(context.Context, *AppDomainRequest) (*AppDomainResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Echo not implemented")
+func (UnimplementedAppServer) HandleAppDomain(context.Context, *AppDomainRequest) (*AppDomainResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method HandleAppDomain not implemented")
 }
-func (UnimplementedAppDomainServer) mustEmbedUnimplementedAppDomainServer() {}
+func (UnimplementedAppServer) HandleAppPort(context.Context, *AppPortRequest) (*AppPortResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method HandleAppPort not implemented")
+}
+func (UnimplementedAppServer) mustEmbedUnimplementedAppServer() {}
 
-// UnsafeAppDomainServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to AppDomainServer will
+// UnsafeAppServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to AppServer will
 // result in compilation errors.
-type UnsafeAppDomainServer interface {
-	mustEmbedUnimplementedAppDomainServer()
+type UnsafeAppServer interface {
+	mustEmbedUnimplementedAppServer()
 }
 
-func RegisterAppDomainServer(s grpc.ServiceRegistrar, srv AppDomainServer) {
-	s.RegisterService(&AppDomain_ServiceDesc, srv)
+func RegisterAppServer(s grpc.ServiceRegistrar, srv AppServer) {
+	s.RegisterService(&App_ServiceDesc, srv)
 }
 
-func _AppDomain_Echo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _App_HandleAppDomain_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AppDomainRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AppDomainServer).Echo(ctx, in)
+		return srv.(AppServer).HandleAppDomain(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.eng.v1.AppDomain/Echo",
+		FullMethod: "/api.eng.v1.App/handleAppDomain",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AppDomainServer).Echo(ctx, req.(*AppDomainRequest))
+		return srv.(AppServer).HandleAppDomain(ctx, req.(*AppDomainRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// AppDomain_ServiceDesc is the grpc.ServiceDesc for AppDomain service.
+func _App_HandleAppPort_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AppPortRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServer).HandleAppPort(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.eng.v1.App/handleAppPort",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServer).HandleAppPort(ctx, req.(*AppPortRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// App_ServiceDesc is the grpc.ServiceDesc for App service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var AppDomain_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "api.eng.v1.AppDomain",
-	HandlerType: (*AppDomainServer)(nil),
+var App_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "api.eng.v1.App",
+	HandlerType: (*AppServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Echo",
-			Handler:    _AppDomain_Echo_Handler,
+			MethodName: "handleAppDomain",
+			Handler:    _App_HandleAppDomain_Handler,
+		},
+		{
+			MethodName: "handleAppPort",
+			Handler:    _App_HandleAppPort_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

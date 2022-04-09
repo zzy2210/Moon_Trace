@@ -22,10 +22,26 @@ message Status {
   string Message = 2;
 }
 
-service AppDomain{
-  rpc Echo(AppDomainRequest) returns (AppDomainResponse) {
+message AppPortRequest{
+  string Ip = 1;
+}
+
+message AppPortResponse {
+  // 开放的端口
+  //
+  // 开放的端口
+  repeated int64 Port = 1;
+}
+service App{
+  rpc handleAppDomain(AppDomainRequest) returns (AppDomainResponse) {
     option (google.api.http) = {
       post:"/app/domain"
+      body:"*"
+    };
+  }
+  rpc handleAppPort(AppPortRequest) returns (AppPortResponse){
+    option (google.api.http) = {
+      post:"/app/port"
       body:"*"
     };
   }
