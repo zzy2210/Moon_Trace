@@ -13,16 +13,20 @@ import (
 	"github.com/labstack/gommon/color"
 )
 
-var subdomain []string
+type SubdomainResponse struct {
+	Subdomain []string
+}
 
 func FindSubdomain(target string) { // use function to find subdomain and organize data
 	wg := sync.WaitGroup{}
 	wg.Add(2) //如果在子函数里面写 wg.add(1) 这种，会直接跑过去而不是停留。
-	go CeFind(target, &wg)
+	var sub *SubdomainResponse
+	go sub.CeFind(target, &wg)
 	wg.Wait()
-	sub := uniqueString(subdomain)
-	for n, _ := range sub {
-		fmt.Println(sub[n])
+	sub.Subdomain = uniqueString(sub.Subdomain)
+	for n, _ := range sub.Subdomain {
+		// todo: 入库
+		fmt.Println(sub.Subdomain[n])
 	}
 }
 
@@ -36,16 +40,16 @@ func indexOfString(atom string, array []string) bool {
 	return false
 }
 
-func CeFind(target string, wg *sync.WaitGroup) {
+func (s *SubdomainResponse) CeFind(target string, wg *sync.WaitGroup) {
 	ceWg := sync.WaitGroup{}
-	go crtsh(target, &ceWg)
-	go certspotter(target, &ceWg)
+	go s.crtsh(target, &ceWg)
+	go s.certspotter(target, &ceWg)
 	ceWg.Wait()
 	wg.Done()
 }
 
 // use crt.sh to find
-func crtsh(target string, wg *sync.WaitGroup) {
+func (s *SubdomainResponse) crtsh(target string, wg *sync.WaitGroup) {
 	wg.Add(1)
 	req, err := http.Get("https://crt.sh/?output=json&q=" + target)
 	if err != nil {
@@ -76,12 +80,12 @@ func crtsh(target string, wg *sync.WaitGroup) {
 			wg.Done()
 			return
 		}
-		subdomain = append(subdomain, domain)
+		s.Subdomain = append(s.Subdomain, domain)
 	}
 	wg.Done()
 }
 
-func certspotter(tg string, wg *sync.WaitGroup) {
+func (s *SubdomainResponse) certspotter(tg string, wg *sync.WaitGroup) {
 	wg.Add(1)
 	req, err := http.Get("https://api.certspotter.com/v1/issuances?expand=dns_names&include_subdomains=true&domain=" + tg)
 	if err != nil {
@@ -100,7 +104,6 @@ func certspotter(tg string, wg *sync.WaitGroup) {
 	tmp = bytes.Trim(tmp, "[")
 	tmp = bytes.Trim(tmp, "]")
 	body := bytes.Split(tmp, []byte("#"))
-	var subdomain []string //用来放子域的切片
 	for _, value := range body {
 		// 解析json
 		js, err := simplejson.NewJson(value)
@@ -115,15 +118,12 @@ func certspotter(tg string, wg *sync.WaitGroup) {
 			wg.Done()
 			return
 		}
-		subdomain = append(subdomain, subarr...)
+		s.Subdomain = append(s.Subdomain, subarr...)
 	}
 	wg.Done()
 }
 
 func uniqueString(ataxic []string) []string {
-	//I want to use simHash
-	//But now,I don't know how to implement the code
-	//So only index of
 	var unique []string
 	for _, value := range ataxic {
 		value = strings.TrimSpace(value)

@@ -1,15 +1,23 @@
 package eng
 
 import (
+	"context"
+	"crypto/tls"
 	"net"
 	"net/http"
 
 	"Moon_Trace/eng/cert"
 	"Moon_Trace/eng/conf"
 	"Moon_Trace/eng/model"
+	"Moon_Trace/eng/service"
 
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/labstack/gommon/log"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"gorm.io/gorm"
+
+	pb "Moon_Trace/api/eng/v1"
 )
 
 type Args struct {
@@ -34,9 +42,13 @@ func NewSrv(DB *gorm.DB, conf *conf.Conf) *Server {
 }
 
 func (s *Server) Run() error {
-
-	return nil
+	conn, err := net.Listen("tcp", s.Args.Addr)
+	if err != nil {
+		log.Fatalf("%v", err)
+	}
+	return s.grpcSrv.Serve(conn)
 }
+
 func Execute(args *Args) {
 	config, err := conf.Load(args.ConfigPath)
 	if err != nil {
@@ -45,17 +57,16 @@ func Execute(args *Args) {
 	gormDB, err := model.NewGormDB(config)
 	srv := NewSrv(gormDB, config)
 	srv.Args = args
-	conn, err := net.Listen("tcp", args.Addr)
 	tlsConf := cert.GetTLSConfig(args.CertPemPath, args.CertKeyPath)
-	//	grpcSrv, err := newGrpc(conn, tlsConf, args)
+	grpcSrv, err := newGrpc(tlsConf, args)
 	if err != nil {
 		log.Errorf("")
 	}
-	//	srv.grpcSrv = grpcSrv
+	srv.grpcSrv = grpcSrv
 	srv.Run()
 }
 
-/*func newGrpc(conn net.Listener, tlsConfig *tls.Config, args *Args) (*http.Server, error) {
+func newGrpc(tlsConfig *tls.Config, args *Args) (*http.Server, error) {
 	var opts []grpc.ServerOption
 
 	// grpc server
@@ -78,9 +89,8 @@ func Execute(args *Args) {
 	}
 	dopts := []grpc.DialOption{grpc.WithTransportCredentials(dcreds)}
 	gwmux := runtime.NewServeMux()
-
 	// register grpc-gateway pb
-	if err := pb.RegisterHelloWorldHandlerFromEndpoint(ctx, gwmux, EndPoint, dopts); err != nil {
+	if err := pb.RegisterAppHandlerFromEndpoint(ctx, gwmux, args.Addr, dopts); err != nil {
 		log.Printf("Failed to register gw server: %v\n", err)
 	}
 
@@ -89,9 +99,7 @@ func Execute(args *Args) {
 	mux.Handle("/", gwmux)
 
 	return &http.Server{
-		Addr:      EndPoint,
-		Handler:   util.GrpcHandlerFunc(grpcServer, mux),
+		Addr:      args.Addr,
 		TLSConfig: tlsConfig,
 	}, nil
 }
-*/
