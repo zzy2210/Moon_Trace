@@ -3,10 +3,11 @@ package eng
 import (
 	"context"
 	"crypto/tls"
+	"fmt"
 	"net"
 	"net/http"
 
-	"Moon_Trace/eng/cert"
+	"Moon_Trace/cert"
 	"Moon_Trace/eng/conf"
 	"Moon_Trace/eng/model"
 	"Moon_Trace/eng/service"
@@ -46,7 +47,8 @@ func (s *Server) Run() error {
 	if err != nil {
 		log.Fatalf("%v", err)
 	}
-	return s.grpcSrv.Serve(conn)
+	tlsConf := cert.GetTLSConfig(s.Args.CertPemPath, s.Args.CertKeyPath)
+	return s.grpcSrv.Serve(tls.NewListener(conn, tlsConf))
 }
 
 func Execute(args *Args) {
@@ -68,14 +70,13 @@ func Execute(args *Args) {
 
 func newGrpc(tlsConfig *tls.Config, args *Args) (*http.Server, error) {
 	var opts []grpc.ServerOption
-
 	// grpc server
 	creds, err := credentials.NewServerTLSFromFile(args.CertPemPath, args.CertKeyPath)
 	if err != nil {
+		fmt.Println(1)
 		log.Printf("Failed to create server TLS credentials %v", err)
 		return nil, err
 	}
-
 	opts = append(opts, grpc.Creds(creds))
 	grpcServer := grpc.NewServer(opts...)
 	// register grpc pb
@@ -84,6 +85,7 @@ func newGrpc(tlsConfig *tls.Config, args *Args) (*http.Server, error) {
 	ctx := context.Background()
 	dcreds, err := credentials.NewClientTLSFromFile(args.CertPemPath, "test")
 	if err != nil {
+		fmt.Println(2)
 		log.Printf("Failed to create client TLS credentials %v", err)
 		return nil, err
 	}
@@ -91,9 +93,9 @@ func newGrpc(tlsConfig *tls.Config, args *Args) (*http.Server, error) {
 	gwmux := runtime.NewServeMux()
 	// register grpc-gateway pb
 	if err := pb.RegisterAppHandlerFromEndpoint(ctx, gwmux, args.Addr, dopts); err != nil {
+		fmt.Println(3)
 		log.Printf("Failed to register gw server: %v\n", err)
 	}
-
 	// http服务
 	mux := http.NewServeMux()
 	mux.Handle("/", gwmux)

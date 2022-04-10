@@ -1,9 +1,13 @@
 package conf
 
-import "github.com/go-ini/ini"
+import (
+	"fmt"
+
+	"github.com/go-ini/ini"
+)
 
 type Conf struct {
-	PGConf *PGConf `ini:pg`
+	PGConf *PGConf `ini:"pg""`
 }
 
 type PGConf struct {
@@ -16,6 +20,7 @@ type PGConf struct {
 
 func Load(path string) (*Conf, error) {
 	f, err := ini.Load(path)
+	fmt.Println("path", path)
 	if err != nil {
 		return nil, err
 	}

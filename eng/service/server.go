@@ -12,7 +12,7 @@ type Server struct {
 
 func (s *Server) HandleAppDomain(ctx context.Context, request *pb.AppDomainRequest) (*pb.AppDomainResponse, error) {
 	return &pb.AppDomainResponse{
-		Urls: []string{},
+		Urls: []string{"hello"},
 	}, nil
 }
 

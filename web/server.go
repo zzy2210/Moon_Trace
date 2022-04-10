@@ -1,28 +1,45 @@
 package web
 
-import "github.com/labstack/echo"
+import (
+	config "Moon_Trace/web/conf"
+	"fmt"
+	"github.com/labstack/echo"
+	"log"
+)
 
+type Args struct {
+	CertPemPath string
+	ConfPath    string
+}
 type Server struct {
-	e *echo.Echo
+	e    *echo.Echo
+	Conf *config.Conf
+
+	Args *Args
 	// grpcSrvs[]
 }
 
-func NewServer(e *echo.Echo) *Server {
+func NewServer(e *echo.Echo, conf *config.Conf) *Server {
 	return &Server{
-		e: e,
+		e:    e,
+		Conf: conf,
 	}
 }
 
 func (s *Server) Run() error {
 	s.Register()
-
-	return s.e.Start(":1323")
+	port := fmt.Sprintf(":%v", s.Conf.Web.Port)
+	return s.e.Start(port)
 }
 
-func Start() error {
+func Execute(args *Args) error {
 	e := echo.New()
-
-	srv := NewServer(e)
+	conf, err := config.Load(args.ConfPath)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	srv := NewServer(e, conf)
+	srv.Args = args
 	return srv.Run()
 }
 
