@@ -3,7 +3,6 @@ package service
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -18,10 +17,9 @@ type Path struct {
 
 func FindPath(tg string) *Path {
 	wg := &sync.WaitGroup{}
-	fmt.Println("start")
 	webUrl, err := url.Parse(tg)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
 	}
 	p := &Path{}
 	p.goPathFinder(webUrl, wg)
@@ -66,18 +64,21 @@ func (p *Path) goPathFinder(tg *url.URL, wg *sync.WaitGroup) {
 	// 请求网页
 	resp, err := http.Get(tg.String())
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println("err")
 	}
-	defer resp.Body.Close()
+	if resp == nil {
+		return
+	}
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println("err")
 	}
+	defer resp.Body.Close()
 	allUrl := httpreg.FindAllSubmatch(body, -1)
 	for _, tmpList := range allUrl {
 		tmpUrl, err := url.Parse(string(tmpList[2]))
 		if err != nil {
-			log.Fatal()
+			fmt.Println(err)
 		}
 		//判断一下href对象是否为目标域名下，防止跑到其他网站,这里用的host，有点小问题，因为如果用的旁站资源那么就会无法导入。
 		if tmpUrl.Host == tg.Host && !IndexOf(tmpUrl.String(), p.PathList) {

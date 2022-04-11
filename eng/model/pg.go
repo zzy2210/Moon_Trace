@@ -16,7 +16,7 @@ type SubDomain struct {
 type Port struct {
 	gorm.Model
 	Host string
-	Port string
+	Port int
 }
 
 type Urls struct {
@@ -34,9 +34,9 @@ func NewGormDB(conf *conf.Conf) (*gorm.DB, error) {
 		return nil, err
 	}
 	// 表创建
-	/*	db.AutoMigrate(&SubDomain{})
-		db.AutoMigrate(&Port{})
-		db.AutoMigrate(&Urls{})*/
+	db.AutoMigrate(&SubDomain{})
+	db.AutoMigrate(&Port{})
+	db.AutoMigrate(&Urls{})
 	fmt.Println("create table success")
 	return db, nil
 }
