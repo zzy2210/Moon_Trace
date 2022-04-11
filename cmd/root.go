@@ -10,7 +10,7 @@ var rootCmd = &cobra.Command{
 	Short: "moon_trace is a tool for safe",
 }
 
-func Excute() {
+func Execute() {
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
 	}

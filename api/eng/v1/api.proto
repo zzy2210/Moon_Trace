@@ -1,20 +1,46 @@
 syntax = "proto3";
+package api.eng.v1;
+
+option go_package = "Moon_Trace/api/eng/v1";
 
 // 域名查询请求
 //
 // 域名查询请求
 message AppDomainRequest{
-
   string Domain = 1;
   int64 Limit = 2;
   int64 Offset = 3;
 }
 
 message AppDomainResponse{
-
+  repeated string Urls = 1;
 }
 
 message Status {
   int32 Code = 1;
   string Message = 2;
+}
+
+message AppPortRequest{
+  string Ip = 1;
+}
+
+message AppPortResponse {
+  // 开放的端口
+  //
+  // 开放的端口
+  repeated int64 Port = 1;
+}
+service App{
+  rpc handleAppDomain(AppDomainRequest) returns (AppDomainResponse) ;
+  rpc handleAppPort(AppPortRequest) returns (AppPortResponse);
+  rpc handleAppUrl(AppUrlRequest) returns (AppUrlResponse);
+}
+
+message AppUrlRequest{
+  string Url = 1;
+}
+
+message AppUrlResponse{
+  repeated string Urls = 1;
 }

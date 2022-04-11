@@ -1,6 +1,7 @@
 package model
 
 import (
+	"Moon_Trace/eng/conf"
 	"fmt"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -15,7 +16,7 @@ type SubDomain struct {
 type Port struct {
 	gorm.Model
 	Host string
-	Port string
+	Port int
 }
 
 type Urls struct {
@@ -26,11 +27,16 @@ type Urls struct {
 type PostgresDB struct {
 }
 
-func NewDB(host, port, user, pwd, dbname string) (*gorm.DB, error) {
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s", host, user, pwd, dbname, port)
+func NewGormDB(conf *conf.Conf) (*gorm.DB, error) {
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s", conf.PGConf.Host, conf.PGConf.User, conf.PGConf.PassWord, conf.PGConf.DBName, conf.PGConf.Port)
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		return nil, err
 	}
+	// 表创建
+	db.AutoMigrate(&SubDomain{})
+	db.AutoMigrate(&Port{})
+	db.AutoMigrate(&Urls{})
+	fmt.Println("create table success")
 	return db, nil
 }
