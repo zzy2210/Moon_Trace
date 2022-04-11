@@ -8,7 +8,6 @@ import (
 
 	"github.com/labstack/echo"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
 )
 
 type appDomainRequest struct {
@@ -26,12 +25,8 @@ func (s *Server) AppDomain(c echo.Context) error {
 	if err := c.Bind(req); err != nil {
 
 	}
-	cred, err := credentials.NewClientTLSFromFile(s.Args.CertPemPath, "*.test.com")
-	if err != nil {
-		return err
-	}
 	grpcAddr := s.Conf.Grpc.GrpcAddr[0]
-	conn, err := grpc.Dial(grpcAddr, grpc.WithTransportCredentials(cred))
+	conn, err := grpc.Dial(grpcAddr, grpc.WithInsecure())
 	defer conn.Close()
 	if err != nil {
 

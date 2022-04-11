@@ -1,20 +1,13 @@
 package eng
 
 import (
-	"context"
-	"crypto/tls"
-	"net"
-	"net/http"
-
-	"Moon_Trace/cert"
 	"Moon_Trace/eng/conf"
 	"Moon_Trace/eng/model"
 	"Moon_Trace/eng/service"
+	"net"
 
-	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/labstack/gommon/log"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
 	"gorm.io/gorm"
 
 	pb "Moon_Trace/api/eng/v1"
@@ -27,7 +20,7 @@ type Args struct {
 	Addr        string
 }
 type Server struct {
-	grpcSrv *http.Server
+	grpcSrv *grpc.Server
 	DB      *gorm.DB
 	ssrv    *service.Server
 
@@ -43,12 +36,15 @@ func NewSrv(DB *gorm.DB, conf *conf.Conf) *Server {
 }
 
 func (s *Server) Run() error {
-	conn, err := net.Listen("tcp", s.Args.Addr)
+	lis, err := net.Listen("tcp", s.Args.Addr)
 	if err != nil {
 		log.Fatalf("%v", err)
 	}
-	tlsConf := cert.GetTLSConfig(s.Args.CertPemPath, s.Args.CertKeyPath)
-	return s.grpcSrv.Serve(tls.NewListener(conn, tlsConf))
+	grpcServer := grpc.NewServer()
+	// register grpc pb
+	pb.RegisterAppServer(grpcServer, s.ssrv)
+	s.grpcSrv = grpcServer
+	return s.grpcSrv.Serve(lis)
 }
 
 func Execute(args *Args) {
@@ -59,47 +55,7 @@ func Execute(args *Args) {
 	gormDB, err := model.NewGormDB(config)
 	srv := NewSrv(gormDB, config)
 	srv.Args = args
-	tlsConf := cert.GetTLSConfig(args.CertPemPath, args.CertKeyPath)
 	ssrv := service.NewServer(gormDB)
-	grpcSrv, err := newGrpc(tlsConf, args, ssrv)
-	if err != nil {
-		log.Errorf("")
-	}
-	srv.grpcSrv = grpcSrv
+	srv.ssrv = ssrv
 	srv.Run()
-}
-
-func newGrpc(tlsConfig *tls.Config, args *Args, ssrv *service.Server) (*http.Server, error) {
-	var opts []grpc.ServerOption
-	// grpc server
-	creds, err := credentials.NewServerTLSFromFile(args.CertPemPath, args.CertKeyPath)
-	if err != nil {
-		log.Printf("Failed to create server TLS credentials %v", err)
-		return nil, err
-	}
-	opts = append(opts, grpc.Creds(creds))
-	grpcServer := grpc.NewServer(opts...)
-	// register grpc pb
-	pb.RegisterAppServer(grpcServer, ssrv)
-	// gw server
-	ctx := context.Background()
-	dcreds, err := credentials.NewClientTLSFromFile(args.CertPemPath, "*.test.com")
-	if err != nil {
-		log.Printf("Failed to create client TLS credentials %v", err)
-		return nil, err
-	}
-	dopts := []grpc.DialOption{grpc.WithTransportCredentials(dcreds)}
-	gwmux := runtime.NewServeMux()
-	// register grpc-gateway pb
-	if err := pb.RegisterAppHandlerFromEndpoint(ctx, gwmux, args.Addr, dopts); err != nil {
-		log.Printf("Failed to register gw server: %v\n", err)
-	}
-	// http服务
-	mux := http.NewServeMux()
-	mux.Handle("/", gwmux)
-
-	return &http.Server{
-		Addr:      args.Addr,
-		TLSConfig: tlsConfig,
-	}, nil
 }

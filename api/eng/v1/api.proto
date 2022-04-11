@@ -1,6 +1,5 @@
 syntax = "proto3";
 package api.eng.v1;
-import "google/api/annotations.proto";
 
 option go_package = "Moon_Trace/api/eng/v1";
 
@@ -33,16 +32,6 @@ message AppPortResponse {
   repeated int64 Port = 1;
 }
 service App{
-  rpc handleAppDomain(AppDomainRequest) returns (AppDomainResponse) {
-    option (google.api.http) = {
-      post:"/v1/app/domain"
-      body:"*"
-    };
-  }
-  rpc handleAppPort(AppPortRequest) returns (AppPortResponse){
-    option (google.api.http) = {
-      post:"/app/port"
-      body:"*"
-    };
-  }
+  rpc handleAppDomain(AppDomainRequest) returns (AppDomainResponse) ;
+  rpc handleAppPort(AppPortRequest) returns (AppPortResponse);
 }
