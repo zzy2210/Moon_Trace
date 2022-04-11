@@ -2,32 +2,29 @@ package service
 
 import (
 	"fmt"
-	"github.com/labstack/gommon/color"
 	"net"
 	"sync"
 	"time"
 )
 
 var ip interface{}
-var portList []int
 
-func PortScan(target string) {
+type PortResponse struct {
+	PortList []int
+}
+
+func PortScan(target string) *PortResponse {
 	var err error
 	ip, err = net.ResolveIPAddr("ip4", target)
 	if err != nil {
-		color.Red("error!")
 		panic(err)
 	}
-	color.Yellow("Start Port Scan ")
-
-	tcpScan(target)
-
-	portList = unique(portList)
-
-	for _, port := range portList {
-		fmt.Println("Open Port:", port)
-	}
-
+	portResponse := &PortResponse{}
+	portResponse.tcpScan(target)
+	fmt.Println("ports:", portResponse.PortList)
+	portResponse.PortList = unique(portResponse.PortList)
+	fmt.Println("after:", portResponse.PortList)
+	return portResponse
 }
 
 func unique(ataxic []int) []int {
@@ -50,10 +47,10 @@ func indexOf(atom int, array []int) bool {
 	return false
 }
 
-func tcpScan(target string) {
+func (p *PortResponse) tcpScan(target string) {
 	wg := sync.WaitGroup{}
 	for i := 1; i <= 65535; i++ {
-		go tcpAddPortList(i, &wg)
+		go p.tcpAddPortList(i, &wg)
 	}
 	wg.Wait()
 }
@@ -64,13 +61,14 @@ func tcpDetectPort(port int) bool {
 	if err != nil {
 		return false
 	}
+	fmt.Println("good port:", addr)
 	return true
 }
 
-func tcpAddPortList(port int, wg *sync.WaitGroup) {
+func (p *PortResponse) tcpAddPortList(port int, wg *sync.WaitGroup) {
 	wg.Add(1)
 	if tcpDetectPort(port) {
-		portList = append(portList, port)
+		p.PortList = append(p.PortList, port)
 	}
 	wg.Done()
 }

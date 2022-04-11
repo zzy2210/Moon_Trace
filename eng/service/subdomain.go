@@ -19,14 +19,15 @@ type SubdomainResponse struct {
 
 func FindSubdomain(target string) []string { // use function to find subdomain and organize data
 	wg := sync.WaitGroup{}
-	wg.Add(2) //如果在子函数里面写 wg.add(1) 这种，会直接跑过去而不是停留。
+	wg.Add(1) //如果在子函数里面写 wg.add(1) 这种，会直接跑过去而不是停留。
 	sub := &SubdomainResponse{}
 	go sub.CeFind(target, &wg)
 	wg.Wait()
+	fmt.Println("end")
 	sub.Subdomain = uniqueString(sub.Subdomain)
-	for n, _ := range sub.Subdomain {
+	/*	for n, _ := range sub.Subdomain {
 		fmt.Println(sub.Subdomain[n])
-	}
+	}*/
 	return sub.Subdomain
 }
 
@@ -42,15 +43,15 @@ func indexOfString(atom string, array []string) bool {
 
 func (s *SubdomainResponse) CeFind(target string, wg *sync.WaitGroup) {
 	ceWg := sync.WaitGroup{}
+	ceWg.Add(2)
 	go s.crtsh(target, &ceWg)
-	// go s.certspotter(target, &ceWg)
+	go s.certspotter(target, &ceWg)
 	ceWg.Wait()
 	wg.Done()
 }
 
 // use crt.sh to find
 func (s *SubdomainResponse) crtsh(target string, wg *sync.WaitGroup) {
-	wg.Add(1)
 	req, err := http.Get("https://crt.sh/?output=json&q=" + target)
 	if err != nil {
 		wg.Done()
@@ -86,7 +87,6 @@ func (s *SubdomainResponse) crtsh(target string, wg *sync.WaitGroup) {
 }
 
 func (s *SubdomainResponse) certspotter(tg string, wg *sync.WaitGroup) {
-	wg.Add(1)
 	req, err := http.Get("https://api.certspotter.com/v1/issuances?expand=dns_names&include_subdomains=true&domain=" + tg)
 	if err != nil {
 		wg.Done()

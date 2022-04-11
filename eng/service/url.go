@@ -12,31 +12,24 @@ import (
 
 var httpreg = regexp.MustCompile(`<(a|link).*href=["'](.+?)["']`)
 
-var pathList []string
+type Path struct {
+	PathList []string
+}
 
-func Control(tg string, deep bool) {
+func FindPath(tg string) *Path {
 	wg := &sync.WaitGroup{}
 	fmt.Println("start")
 	webUrl, err := url.Parse(tg)
 	if err != nil {
 		log.Fatal(err)
 	}
-	if deep {
-		goPathFinder(webUrl, wg)
-	} else {
-		pathFinder(webUrl, wg)
-	}
+	p := &Path{}
+	p.goPathFinder(webUrl, wg)
 	wg.Wait()
-	if deep {
-		// OutPut.TxtOut(webUrl.Host, pathList)
-	} else {
-		for _, v := range pathList {
-			fmt.Println(v)
-		}
-	}
+	return p
 }
 
-func pathFinder(tg *url.URL, wg *sync.WaitGroup) {
+/*func pathFinder(tg *url.URL, wg *sync.WaitGroup) {
 	wg.Add(1)
 	defer wg.Done()
 	// 请求网页
@@ -66,8 +59,8 @@ func pathFinder(tg *url.URL, wg *sync.WaitGroup) {
 	}
 
 }
-
-func goPathFinder(tg *url.URL, wg *sync.WaitGroup) {
+*/
+func (p *Path) goPathFinder(tg *url.URL, wg *sync.WaitGroup) {
 	wg.Add(1)
 	defer wg.Done()
 	// 请求网页
@@ -87,9 +80,9 @@ func goPathFinder(tg *url.URL, wg *sync.WaitGroup) {
 			log.Fatal()
 		}
 		//判断一下href对象是否为目标域名下，防止跑到其他网站,这里用的host，有点小问题，因为如果用的旁站资源那么就会无法导入。
-		if tmpUrl.Host == tg.Host && !IndexOf(tmpUrl.String(), pathList) {
-			pathList = append(pathList, tmpUrl.String())
-			go goPathFinder(tmpUrl, wg)
+		if tmpUrl.Host == tg.Host && !IndexOf(tmpUrl.String(), p.PathList) {
+			p.PathList = append(p.PathList, tmpUrl.String())
+			go p.goPathFinder(tmpUrl, wg)
 		}
 	}
 }

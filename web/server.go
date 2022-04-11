@@ -45,4 +45,6 @@ func Execute(args *Args) error {
 
 func (s *Server) Register() {
 	s.e.POST("/app/domain", s.AppDomain)
+	s.e.POST("/app/url", s.AppUrl)
+	s.e.POST("/app/port", s.AppPort)
 }
