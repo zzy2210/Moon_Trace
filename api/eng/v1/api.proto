@@ -34,4 +34,13 @@ message AppPortResponse {
 service App{
   rpc handleAppDomain(AppDomainRequest) returns (AppDomainResponse) ;
   rpc handleAppPort(AppPortRequest) returns (AppPortResponse);
+  rpc handleAppUrl(AppUrlRequest) returns (AppUrlResponse);
+}
+
+message AppUrlRequest{
+  string Url = 1;
+}
+
+message AppUrlResponse{
+  repeated string Urls = 1;
 }

@@ -17,17 +17,17 @@ type SubdomainResponse struct {
 	Subdomain []string
 }
 
-func FindSubdomain(target string) { // use function to find subdomain and organize data
+func FindSubdomain(target string) []string { // use function to find subdomain and organize data
 	wg := sync.WaitGroup{}
 	wg.Add(2) //如果在子函数里面写 wg.add(1) 这种，会直接跑过去而不是停留。
-	var sub *SubdomainResponse
+	sub := &SubdomainResponse{}
 	go sub.CeFind(target, &wg)
 	wg.Wait()
 	sub.Subdomain = uniqueString(sub.Subdomain)
 	for n, _ := range sub.Subdomain {
-		// todo: 入库
 		fmt.Println(sub.Subdomain[n])
 	}
+	return sub.Subdomain
 }
 
 func indexOfString(atom string, array []string) bool {
@@ -43,7 +43,7 @@ func indexOfString(atom string, array []string) bool {
 func (s *SubdomainResponse) CeFind(target string, wg *sync.WaitGroup) {
 	ceWg := sync.WaitGroup{}
 	go s.crtsh(target, &ceWg)
-	go s.certspotter(target, &ceWg)
+	// go s.certspotter(target, &ceWg)
 	ceWg.Wait()
 	wg.Done()
 }
