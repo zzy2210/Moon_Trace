@@ -3,7 +3,6 @@ package eng
 import (
 	"context"
 	"crypto/tls"
-	"fmt"
 	"net"
 	"net/http"
 
@@ -30,6 +29,7 @@ type Args struct {
 type Server struct {
 	grpcSrv *http.Server
 	DB      *gorm.DB
+	ssrv    *service.Server
 
 	Conf *conf.Conf
 	Args *Args
@@ -60,7 +60,8 @@ func Execute(args *Args) {
 	srv := NewSrv(gormDB, config)
 	srv.Args = args
 	tlsConf := cert.GetTLSConfig(args.CertPemPath, args.CertKeyPath)
-	grpcSrv, err := newGrpc(tlsConf, args)
+	ssrv := service.NewServer(gormDB)
+	grpcSrv, err := newGrpc(tlsConf, args, ssrv)
 	if err != nil {
 		log.Errorf("")
 	}
@@ -68,24 +69,22 @@ func Execute(args *Args) {
 	srv.Run()
 }
 
-func newGrpc(tlsConfig *tls.Config, args *Args) (*http.Server, error) {
+func newGrpc(tlsConfig *tls.Config, args *Args, ssrv *service.Server) (*http.Server, error) {
 	var opts []grpc.ServerOption
 	// grpc server
 	creds, err := credentials.NewServerTLSFromFile(args.CertPemPath, args.CertKeyPath)
 	if err != nil {
-		fmt.Println(1)
 		log.Printf("Failed to create server TLS credentials %v", err)
 		return nil, err
 	}
 	opts = append(opts, grpc.Creds(creds))
 	grpcServer := grpc.NewServer(opts...)
 	// register grpc pb
-	pb.RegisterAppServer(grpcServer, service.NewServer())
+	pb.RegisterAppServer(grpcServer, ssrv)
 	// gw server
 	ctx := context.Background()
-	dcreds, err := credentials.NewClientTLSFromFile(args.CertPemPath, "test")
+	dcreds, err := credentials.NewClientTLSFromFile(args.CertPemPath, "*.test.com")
 	if err != nil {
-		fmt.Println(2)
 		log.Printf("Failed to create client TLS credentials %v", err)
 		return nil, err
 	}
@@ -93,7 +92,6 @@ func newGrpc(tlsConfig *tls.Config, args *Args) (*http.Server, error) {
 	gwmux := runtime.NewServeMux()
 	// register grpc-gateway pb
 	if err := pb.RegisterAppHandlerFromEndpoint(ctx, gwmux, args.Addr, dopts); err != nil {
-		fmt.Println(3)
 		log.Printf("Failed to register gw server: %v\n", err)
 	}
 	// http服务

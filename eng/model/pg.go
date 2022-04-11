@@ -33,5 +33,10 @@ func NewGormDB(conf *conf.Conf) (*gorm.DB, error) {
 	if err != nil {
 		return nil, err
 	}
+	// 表创建
+	/*	db.AutoMigrate(&SubDomain{})
+		db.AutoMigrate(&Port{})
+		db.AutoMigrate(&Urls{})*/
+	fmt.Println("create table success")
 	return db, nil
 }

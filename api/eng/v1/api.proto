@@ -35,7 +35,7 @@ message AppPortResponse {
 service App{
   rpc handleAppDomain(AppDomainRequest) returns (AppDomainResponse) {
     option (google.api.http) = {
-      post:"/app/domain"
+      post:"/v1/app/domain"
       body:"*"
     };
   }

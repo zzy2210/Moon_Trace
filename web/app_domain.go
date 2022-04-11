@@ -26,7 +26,7 @@ func (s *Server) AppDomain(c echo.Context) error {
 	if err := c.Bind(req); err != nil {
 
 	}
-	cred, err := credentials.NewClientTLSFromFile(s.Args.CertPemPath, "test")
+	cred, err := credentials.NewClientTLSFromFile(s.Args.CertPemPath, "*.test.com")
 	if err != nil {
 		return err
 	}
