@@ -1,0 +1,24 @@
+syntax = "proto3";
+package api.web.v1;
+
+option go_package = "Moon_Trace/api/web/v1";
+
+// 节点注册
+message Register{
+string Id = 1;
+string Ip =2 ;
+
+}
+
+// 节点注销
+message DeRegister{
+
+}
+
+// 保活消息
+message Noop {
+
+}
+
+// 写一个流，方式noop频繁地创建与销毁连接，导致过高的开销
+
